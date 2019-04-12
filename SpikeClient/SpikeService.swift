@@ -32,10 +32,10 @@ public class SpikeService: ServiceAuthentication {
          */
 
         /*
-        let customServer = "https://REPLACEME"
+        let customServer = "https://cyoungshareserver.herokuapp.com"
         let customServerTitle = "Custom"
 
-        credentials[2].options?.append(
+        credentialValues.append(
                 (title: LocalizedString(customServerTitle, comment: "Custom share server option title"),
                 value: customServer))
         */
