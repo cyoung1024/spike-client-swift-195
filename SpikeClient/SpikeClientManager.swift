@@ -64,7 +64,8 @@ public class SpikeClientManager: CGMManager {
         }
 
         // If our last glucose was less than 4.5 minutes ago, don't fetch.
-        if let latestGlucose = latestBackfill, latestGlucose.startDate.timeIntervalSinceNow > -TimeInterval(minutes: 4.5) {
+        // cyoung1024 : adjust to 4 minutes to account for Spike delay
+        if let latestGlucose = latestBackfill, latestGlucose.startDate.timeIntervalSinceNow > -TimeInterval(minutes: 4) {
             completion(.noData)
             return
         }
