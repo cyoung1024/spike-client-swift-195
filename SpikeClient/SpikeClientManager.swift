@@ -36,8 +36,25 @@ public class SpikeClientManager: CGMManager {
 
     public let appURL: URL? = URL(string: "spikeapp://")
 
-    weak public var cgmManagerDelegate: CGMManagerDelegate?
-
+    public var cgmManagerDelegate: CGMManagerDelegate? {
+        get {
+            return delegate.delegate
+        }
+        set {
+            delegate.delegate = newValue
+        }
+    }
+    
+    public var delegateQueue: DispatchQueue! {
+        get {
+            return delegate.queue
+        }
+        set {
+            delegate.queue = newValue
+        }
+    }
+    
+    public let delegate = WeakSynchronizedDelegate<CGMManagerDelegate>()
     public let providesBLEHeartbeat = false
 
     public let shouldSyncToRemoteService = false
