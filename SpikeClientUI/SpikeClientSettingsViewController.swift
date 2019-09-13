@@ -37,12 +37,12 @@ public class SpikeClientSettingsViewController: UITableViewController {
 
         title = cgmManager.localizedTitle
 
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44
-
-        tableView.sectionHeaderHeight = UITableViewAutomaticDimension
+        
+        tableView.sectionHeaderHeight = UITableView.automaticDimension
         tableView.estimatedSectionHeaderHeight = 55
-
+        
         tableView.register(SettingsTableViewCell.self, forCellReuseIdentifier: SettingsTableViewCell.className)
         tableView.register(TextButtonTableViewCell.self, forCellReuseIdentifier: TextButtonTableViewCell.className)
         
@@ -62,24 +62,20 @@ public class SpikeClientSettingsViewController: UITableViewController {
 
     // MARK: - UITableViewDataSource
 
-    private enum Section: Int {
+    private enum Section: Int, CaseIterable {
         case authentication
         case latestReading
         case delete
-
-        static let count = 3
     }
 
     override public func numberOfSections(in tableView: UITableView) -> Int {
         return allowsDeletion ? Section.count : Section.count - 1
     }
 
-    private enum LatestReadingRow: Int {
+    private enum LatestReadingRow: Int, CaseIterable {
         case glucose
         case date
         case trend
-
-        static let count = 3
     }
 
     override public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -87,7 +83,7 @@ public class SpikeClientSettingsViewController: UITableViewController {
         case .authentication:
             return 1
         case .latestReading:
-            return LatestReadingRow.count
+            return LatestReadingRow.allCases.count
         case .delete:
             return 1
         }
@@ -149,7 +145,7 @@ public class SpikeClientSettingsViewController: UITableViewController {
             return cell
         case .delete:
             let cell = tableView.dequeueReusableCell(withIdentifier: TextButtonTableViewCell.className, for: indexPath) as! TextButtonTableViewCell
-
+            
             cell.textLabel?.text = LocalizedString("Delete CGM", comment: "Title text for the button to remove a CGM from Loop")
             cell.textLabel?.textAlignment = .center
             cell.tintColor = .delete
@@ -184,10 +180,13 @@ public class SpikeClientSettingsViewController: UITableViewController {
             tableView.deselectRow(at: indexPath, animated: true)
         case .delete:
             let confirmVC = UIAlertController(cgmDeletionHandler: {
-                self.cgmManager.cgmManagerDelegate?.cgmManagerWantsDeletion(self.cgmManager)
-                self.complete()
+                self.cgmManager.notifyDelegateOfDeletion {
+                    DispatchQueue.main.async {
+                        self.complete()
+                    }
+                }
             })
-
+            
             present(confirmVC, animated: true) {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
@@ -203,15 +202,15 @@ private extension UIAlertController {
             message: LocalizedString("Are you sure you want to delete this CGM?", comment: "Confirmation message for deleting a CGM"),
             preferredStyle: .actionSheet
         )
-
+        
         addAction(UIAlertAction(
             title: LocalizedString("Delete CGM", comment: "Button title to delete CGM"),
             style: .destructive,
             handler: { (_) in
                 handler()
-            }
+        }
         ))
-
+        
         let cancel = LocalizedString("Cancel", comment: "The title of the cancel action in an action sheet")
         addAction(UIAlertAction(title: cancel, style: .cancel, handler: nil))
     }
