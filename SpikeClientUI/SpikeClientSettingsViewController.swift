@@ -37,10 +37,10 @@ public class SpikeClientSettingsViewController: UITableViewController {
         
         title = cgmManager.localizedTitle
         
-        tableView.rowHeight = UITableView.automaticDimension
+        tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 44
         
-        tableView.sectionHeaderHeight = UITableView.automaticDimension
+        tableView.sectionHeaderHeight = UITableViewAutomaticDimension
         tableView.estimatedSectionHeaderHeight = 55
         
         tableView.register(SettingsTableViewCell.self, forCellReuseIdentifier: SettingsTableViewCell.className)
