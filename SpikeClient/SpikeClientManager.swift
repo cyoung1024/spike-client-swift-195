@@ -36,8 +36,26 @@ public class SpikeClientManager: CGMManager {
 
     public let appURL: URL? = URL(string: "spikeapp://")
 
-    weak public var cgmManagerDelegate: CGMManagerDelegate?
-
+    public var cgmManagerDelegate: CGMManagerDelegate? {
+        get {
+            return delegate.delegate
+        }
+        set {
+            delegate.delegate = newValue
+        }
+    }
+    
+    public var delegateQueue: DispatchQueue! {
+        get {
+            return delegate.queue
+        }
+        set {
+            delegate.queue = newValue
+        }
+    }
+    
+    public let delegate = WeakSynchronizedDelegate<CGMManagerDelegate>()
+    
     public let providesBLEHeartbeat = false
 
     public let shouldSyncToRemoteService = false
@@ -64,7 +82,8 @@ public class SpikeClientManager: CGMManager {
         }
 
         // If our last glucose was less than 4.5 minutes ago, don't fetch.
-        if let latestGlucose = latestBackfill, latestGlucose.startDate.timeIntervalSinceNow > -TimeInterval(minutes: 4.5) {
+        // cyoung1024 : adjust to 4 minutes to account for Spike delay
+        if let latestGlucose = latestBackfill, latestGlucose.startDate.timeIntervalSinceNow > -TimeInterval(minutes: 4) {
             completion(.noData)
             return
         }
@@ -80,15 +99,18 @@ public class SpikeClientManager: CGMManager {
             }
 
             // Ignore glucose values that are up to a minute newer than our previous value, to account for possible time shifting in Share data
-            let startDate = self.cgmManagerDelegate?.startDateToFilterNewData(for: self)?.addingTimeInterval(TimeInterval(minutes: 1))
-            let newGlucose = glucose.filterDateRange(startDate, nil).filter({ $0.isStateValid }).map {
+            let startDate = self.delegate.call { (delegate) -> Date? in
+                return delegate?.startDateToFilterNewData(for: self)?.addingTimeInterval(TimeInterval(minutes: 1))
+            }
+            let newGlucose = glucose.filterDateRange(startDate, nil)
+            let newSamples = newGlucose.filter({ $0.isStateValid }).map {
                 return NewGlucoseSample(date: $0.startDate, quantity: $0.quantity, isDisplayOnly: false, syncIdentifier: "\(Int($0.startDate.timeIntervalSince1970))", device: self.device)
             }
-
-            self.latestBackfill = glucose.first
-
-            if newGlucose.count > 0 {
-                completion(.newData(newGlucose))
+            
+            self.latestBackfill = newGlucose.first
+            
+            if newSamples.count > 0 {
+                completion(.newData(newSamples))
             } else {
                 completion(.noData)
             }
